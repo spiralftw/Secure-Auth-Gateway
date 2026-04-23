@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head><meta charset="UTF-8"><title>Kaksivaiheinen tunnistus</title></head>
+<body>
+  {% if verify_mode %}
+    <!-- Kirjautumisen MFA-vahvistusnäkymä -->
+    <h1>Syötä tunnistuskoodi</h1>
+    <p>Avaa Google Authenticator tai Authy ja syötä 6-numeroinen koodi.</p>
+    <form method="post" action="/mfa/verify">
+      <input type="text" name="code" placeholder="123456" maxlength="6"
+             inputmode="numeric" autocomplete="one-time-code" required>
+      <button type="submit">Vahvista</button>
+    </form>
+  {% else %}
+    <!-- MFA:n asennusnäkymä -->
+    <h1>Ota kaksivaiheinen tunnistus käyttöön</h1>
+    <p>Skannaa alla oleva QR-koodi Google Authenticatorilla tai Authylla.</p>
+
+    <!-- qr_b64 on base64-muotoinen PNG-kuva jonka backend lähetti.
+         data:image/png;base64, kertoo selaimelle miten kuva tulkitaan. -->
+    {% if qr_b64 %}
+      <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR-koodi">
+    {% endif %}
+
+    <p>Syötä sovelluksen näyttämä 6-numeroinen koodi vahvistaaksesi asennus:</p>
+    <form method="post" action="/mfa/setup">
+      <input type="text" name="code" placeholder="123456" maxlength="6"
+             inputmode="numeric" autocomplete="one-time-code" required>
+      <button type="submit">Vahvista ja aktivoi</button>
+    </form>
+  {% endif %}
+</body>
+</html>

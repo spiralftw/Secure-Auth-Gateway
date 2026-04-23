@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head><meta charset="UTF-8"><title>Kirjaudu</title></head>
+<body>
+  <h1>Kirjaudu</h1>
+  <form method="post">
+    <input type="email"    name="email"    placeholder="Sähköposti" required><br>
+    <input type="password" name="password" placeholder="Salasana"   required><br>
+
+    <!-- Honeypot: piilotettu boteille, oikea käyttäjä ei täytä tätä -->
+    <input type="text" name="phone" style="display:none" tabindex="-1" autocomplete="off">
+
+    <button type="submit">Kirjaudu</button>
+  </form>
+  <a href="/oauth/github/login">Kirjaudu GitHubilla</a>
+</body>
+</html>
