@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Two-Factor Verification{% endblock %}
+
+{% block body %}
+<div class="page-center">
+
+  <a class="brand" href="/">
+    <div class="brand-icon">🔐</div>
+    <span class="brand-name">Secure Auth Gateway</span>
+  </a>
+
+  <div class="card">
+    <h1 class="card-title">Two-factor verification</h1>
+    <p class="card-subtitle">Open your authenticator app and enter the 6-digit code.</p>
+
+    <div class="alert alert-error" id="msg-error"></div>
+
+    <div class="info-box">
+      The code refreshes every <strong>30 seconds</strong>.
+      If the code has just changed, wait for the next one.
+    </div>
+
+    <form id="mfa-verify-form">
+      <div class="form-group">
+        <label for="code">Authentication code</label>
+        <input type="text" id="code" name="code"
+               class="otp-input"
+               placeholder="000000"
+               maxlength="6"
+               inputmode="numeric"
+               pattern="[0-9]{6}"
+               autocomplete="one-time-code"
+               autofocus
+               required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Verify</button>
+    </form>
+
+    <div class="card-footer">
+      Wrong account? <a href="/logout">Sign out</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.getElementById("mfa-verify-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data   = new FormData(e.target);
+    const errBox = document.getElementById("msg-error");
+
+    errBox.classList.remove("visible");
+
+    try {
+      const res  = await fetch("/mfa/verify", { method: "POST", body: data });
+      const json = await res.json();
+
+      if (res.ok) {
+        // Login fully complete — go to dashboard.
+        window.location.href = "/dashboard";
+      } else {
+        errBox.textContent = json.error || "Verification failed.";
+        errBox.classList.add("visible");
+        // Clear the input so the user can try again easily.
+        document.getElementById("code").value = "";
+        document.getElementById("code").focus();
+      }
+    } catch (err) {
+      errBox.textContent = "Network error. Please try again.";
+      errBox.classList.add("visible");
+    }
+  });
+</script>
+{% endblock %}

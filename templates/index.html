@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Secure Auth Gateway{% endblock %}
+
+{% block body %}
+<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px;">
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); max-width: 600px; width: 100%; padding: 40px; box-shadow: var(--shadow);">
+        <h1 style="text-align: center; margin-bottom: 16px; font-size: 32px;">Secure Auth Gateway</h1>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 32px;">
+            A secure authentication system with multi-factor authentication and OAuth 2.0 support.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;">
+            <a href="{{ url_for('login') }}" style="background: var(--accent); color: #fff; padding: 12px 16px; border-radius: var(--radius); text-decoration: none; text-align: center; font-weight: 500; border: none; cursor: pointer;">
+                Login
+            </a>
+            <a href="{{ url_for('register') }}" style="background: var(--accent-blue); color: #fff; padding: 12px 16px; border-radius: var(--radius); text-decoration: none; text-align: center; font-weight: 500; border: none; cursor: pointer;">
+                Register
+            </a>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px; color: var(--text-muted);">Or sign in with GitHub</div>
+
+        <a href="{{ url_for('oauth_login', provider='github') }}" style="background: var(--surface-2); color: var(--text); padding: 12px 16px; border-radius: var(--radius); text-decoration: none; text-align: center; font-weight: 500; border: 1px solid var(--border); display: block; cursor: pointer;">
+            GitHub Login
+        </a>
+
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <h6 style="margin-bottom: 16px; font-size: 14px; font-weight: 600;">Features:</h6>
+        <ul style="list-style: none; padding: 0;">
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> Secure password hashing with Argon2id</li>
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> Two-factor authentication (TOTP)</li>
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> OAuth 2.0 (GitHub) login</li>
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> Rate limiting and bot detection</li>
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> Security event logging</li>
+            <li style="margin-bottom: 10px; font-size: 13px;"><span style="color: var(--success-text);">✓</span> AES-256-GCM encryption</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

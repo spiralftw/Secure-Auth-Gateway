@@ -1,33 +1,91 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head><meta charset="UTF-8"><title>Kaksivaiheinen tunnistus</title></head>
-<body>
-  {% if verify_mode %}
-    <!-- Kirjautumisen MFA-vahvistusnäkymä -->
-    <h1>Syötä tunnistuskoodi</h1>
-    <p>Avaa Google Authenticator tai Authy ja syötä 6-numeroinen koodi.</p>
-    <form method="post" action="/mfa/verify">
-      <input type="text" name="code" placeholder="123456" maxlength="6"
-             inputmode="numeric" autocomplete="one-time-code" required>
-      <button type="submit">Vahvista</button>
-    </form>
-  {% else %}
-    <!-- MFA:n asennusnäkymä -->
-    <h1>Ota kaksivaiheinen tunnistus käyttöön</h1>
-    <p>Skannaa alla oleva QR-koodi Google Authenticatorilla tai Authylla.</p>
+{% extends "base.html" %}
+{% block title %}Set Up Two-Factor Authentication{% endblock %}
 
-    <!-- qr_b64 on base64-muotoinen PNG-kuva jonka backend lähetti.
-         data:image/png;base64, kertoo selaimelle miten kuva tulkitaan. -->
+{% block body %}
+<div class="page-center">
+
+  <a class="brand" href="/">
+    <div class="brand-icon">🔐</div>
+    <span class="brand-name">Secure Auth Gateway</span>
+  </a>
+
+  <div class="card" style="max-width:440px">
+    <h1 class="card-title">Set up 2FA</h1>
+    <p class="card-subtitle">Scan the QR code with your authenticator app, then enter the 6-digit code to confirm.</p>
+
+    <div class="alert alert-error"   id="msg-error"></div>
+    <div class="alert alert-success" id="msg-success"></div>
+
+    <!-- QR Code -->
+    <!--
+      qr_b64 is a base64-encoded PNG image generated on the server.
+      The data:image/png;base64, prefix tells the browser how to decode it.
+      The user scans this with Google Authenticator, Authy, 1Password, etc.
+    -->
     {% if qr_b64 %}
-      <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR-koodi">
+    <div class="qr-container">
+      <img src="data:image/png;base64,{{ qr_b64 }}" alt="Scan this QR code with your authenticator app">
+    </div>
     {% endif %}
 
-    <p>Syötä sovelluksen näyttämä 6-numeroinen koodi vahvistaaksesi asennus:</p>
-    <form method="post" action="/mfa/setup">
-      <input type="text" name="code" placeholder="123456" maxlength="6"
-             inputmode="numeric" autocomplete="one-time-code" required>
-      <button type="submit">Vahvista ja aktivoi</button>
+    <div class="info-box">
+      <strong>Instructions:</strong><br>
+      1. Open <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app.<br>
+      2. Tap "Add account" → "Scan QR code".<br>
+      3. Scan the code above.<br>
+      4. Enter the 6-digit code shown in the app below.
+    </div>
+
+    <form id="mfa-setup-form">
+      <div class="form-group">
+        <label for="code">Verification code</label>
+        <input type="text" id="code" name="code"
+               class="otp-input"
+               placeholder="000000"
+               maxlength="6"
+               inputmode="numeric"
+               pattern="[0-9]{6}"
+               autocomplete="one-time-code"
+               required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Activate 2FA</button>
     </form>
-  {% endif %}
-</body>
-</html>
+
+    <div class="card-footer">
+      <a href="/dashboard">← Back to dashboard</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.getElementById("mfa-setup-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const data   = new FormData(e.target);
+    const errBox = document.getElementById("msg-error");
+    const okBox  = document.getElementById("msg-success");
+
+    errBox.classList.remove("visible");
+    okBox.classList.remove("visible");
+
+    try {
+      const res  = await fetch("/mfa/setup", { method: "POST", body: data });
+      const json = await res.json();
+
+      if (res.ok) {
+        okBox.textContent = json.message + " Redirecting...";
+        okBox.classList.add("visible");
+        setTimeout(() => window.location.href = "/dashboard", 1200);
+      } else {
+        errBox.textContent = json.error || "Verification failed.";
+        errBox.classList.add("visible");
+      }
+    } catch (err) {
+      errBox.textContent = "Network error. Please try again.";
+      errBox.classList.add("visible");
+    }
+  });
+</script>
+{% endblock %}

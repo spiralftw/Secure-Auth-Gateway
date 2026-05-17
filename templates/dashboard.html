@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Secure Auth Gateway{% endblock %}
+
+{% block body %}
+
+<!-- Top navigation bar -->
+<nav class="dashboard-nav">
+  <div class="brand-icon">🔐</div>
+  <span class="brand-name">Secure Auth Gateway</span>
+  <a href="/mfa/setup">Enable 2FA</a>
+  <a href="/logout">Sign out</a>
+</nav>
+
+<div class="dashboard-content">
+
+  <!-- Welcome header -->
+  <h1 style="font-size:22px; margin-bottom:6px;">
+    Welcome back
+    <span style="color: var(--text-muted); font-weight:400;">{{ user.email }}</span>
+  </h1>
+  <p style="color: var(--text-muted); margin-bottom:32px; font-size:13px;">
+    You are authenticated. This page is only accessible when logged in.
+  </p>
+
+  <!-- Security status cards -->
+  <h2 style="font-size:14px; font-weight:600; margin-bottom:12px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">
+    Security status
+  </h2>
+
+  <div class="feature-grid">
+
+    <div class="feature-card">
+      <h3>
+        Password
+        <span class="badge badge-green">Protected</span>
+      </h3>
+      <p>Stored as an Argon2id hash. Your plaintext password is never saved.</p>
+    </div>
+
+    <div class="feature-card">
+      <h3>
+        Two-Factor Auth
+        {% if user.mfa_enabled %}
+          <span class="badge badge-green">Active</span>
+        {% else %}
+          <span class="badge badge-yellow">Off</span>
+        {% endif %}
+      </h3>
+      <p>
+        {% if user.mfa_enabled %}
+          Your account requires a TOTP code at each login.
+        {% else %}
+          <a href="/mfa/setup" style="color:var(--accent-blue)">Enable 2FA</a>
+          to add an extra layer of protection.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <h3>
+        Login method
+        <span class="badge badge-green">
+          {{ user.oauth_provider | capitalize if user.oauth_provider else "Password" }}
+        </span>
+      </h3>
+      <p>
+        {% if user.oauth_provider %}
+          Signed in via {{ user.oauth_provider | capitalize }} OAuth.
+        {% else %}
+          Signed in with email and password.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <h3>
+        Session
+        <span class="badge badge-green">Active</span>
+      </h3>
+      <p>Your session is stored in a signed, server-side cookie.</p>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

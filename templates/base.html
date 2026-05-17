@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Secure Auth Gateway{% endblock %}</title>
+  <style>
+    /* ------------------------------------------------------------------ */
+    /* CSS Reset & Base                                                     */
+    /* ------------------------------------------------------------------ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Design Tokens                                                        */
+    /* ------------------------------------------------------------------ */
+    :root {
+      --bg:           #0d1117;   /* Page background — deep dark blue/black */
+      --surface:      #161b22;   /* Card background */
+      --surface-2:    #21262d;   /* Input background */
+      --border:       #30363d;   /* Subtle borders */
+      --border-focus: #58a6ff;   /* Focused input border */
+      --text:         #e6edf3;   /* Primary text */
+      --text-muted:   #8b949e;   /* Secondary / placeholder text */
+      --accent:       #238636;   /* Primary green — success / submit */
+      --accent-hover: #2ea043;   /* Hover state for green button */
+      --accent-blue:  #1f6feb;   /* Blue accent — links, GitHub button */
+      --accent-blue-h:#388bfd;   /* Hover for blue */
+      --danger:       #da3633;   /* Error state */
+      --danger-bg:    #1a0d0d;   /* Error message background */
+      --success-bg:   #0d1f0d;   /* Success message background */
+      --success-text: #3fb950;
+      --radius:       8px;
+      --shadow:       0 8px 32px rgba(0,0,0,0.5);
+      --transition:   0.18s ease;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Layout                                                               */
+    /* ------------------------------------------------------------------ */
+    html, body {
+      min-height: 100vh;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                   Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Centered card layout used by all auth pages */
+    .page-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Logo / Brand                                                         */
+    /* ------------------------------------------------------------------ */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Card                                                                 */
+    /* ------------------------------------------------------------------ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .card-subtitle {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Form Elements                                                        */
+    /* ------------------------------------------------------------------ */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 14px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Honeypot field — must be hidden from real users */
+    .hp-field {
+      display: none !important;
+      position: absolute;
+      left: -9999px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Buttons                                                              */
+    /* ------------------------------------------------------------------ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 9px 16px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: #2ea04326;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-github {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--border);
+      margin-top: 8px;
+    }
+
+    .btn-github:hover {
+      background: var(--border);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Divider                                                              */
+    /* ------------------------------------------------------------------ */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Alerts                                                               */
+    /* ------------------------------------------------------------------ */
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none; /* shown by JS */
+    }
+
+    .alert-error {
+      background: var(--danger-bg);
+      color: #ff8080;
+      border: 1px solid #da363340;
+    }
+
+    .alert-success {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid #2ea04340;
+    }
+
+    .alert.visible {
+      display: block;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Footer / Links                                                       */
+    /* ------------------------------------------------------------------ */
+    .card-footer {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .card-footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+
+    .card-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* OTP Input                                                            */
+    /* ------------------------------------------------------------------ */
+    .otp-input {
+      font-size: 24px !important;
+      letter-spacing: 8px;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* QR Code container                                                   */
+    /* ------------------------------------------------------------------ */
+    .qr-container {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 16px;
+      display: inline-block;
+      margin: 16px auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    .qr-container img {
+      display: block;
+      width: 180px;
+      height: 180px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Info Box                                                             */
+    /* ------------------------------------------------------------------ */
+    .info-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+
+    .info-box strong {
+      color: var(--text);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Dashboard                                                            */
+    /* ------------------------------------------------------------------ */
+    .dashboard-nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 56px;
+      gap: 24px;
+    }
+
+    .dashboard-nav .brand-name {
+      margin-right: auto;
+    }
+
+    .dashboard-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color var(--transition);
+    }
+
+    .dashboard-nav a:hover { color: var(--text); }
+
+    .dashboard-content {
+      max-width: 800px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .feature-card h3 { font-size: 14px; margin-bottom: 6px; }
+    .feature-card p  { font-size: 13px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+    }
+
+    .badge-green {
+      background: #1a3a1a;
+      color: var(--success-text);
+      border: 1px solid #2ea04330;
+    }
+
+    .badge-yellow {
+      background: #2d2500;
+      color: #e3b341;
+      border: 1px solid #e3b34130;
+    }
+  </style>
+</head>
+<body>
+  {% block body %}{% endblock %}
+</body>
+</html>
